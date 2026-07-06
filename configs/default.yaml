@@ -1,0 +1,75 @@
+project:
+  name: ninapro_db2_cross_subject
+  data_root: /workspace/sEMG_diff/data
+  raw_db2_dir: /workspace/Ninapro/db2
+  processed_dir: /workspace/sEMG_diff/data/processed/db2
+  results_dir: /workspace/sEMG_diff/results
+
+dataset:
+  name: Ninapro_DB2
+  subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+  exercises: [1]
+  sampling_rate_hz: 2000
+  emg_channels: 12
+  label_source: restimulus
+  repetition_source: rerepetition
+  include_rest: false
+
+preprocessing:
+  bandpass_hz: [20, 450]
+  notch_hz: 50
+  notch_quality: 30
+  rectify: false
+  filter: true
+  normalize: source_train_standard
+
+windowing:
+  window_ms: 200
+  step_ms: 100
+  label_majority_threshold: 0.90
+  save_dtype: float32
+
+splits:
+  protocol: loso
+  val_subject_fraction: 0.15
+  within_subject_test_repetitions: [2, 5]
+  seed: 2026
+
+features:
+  time_domain:
+    enabled: [mav, rms, wl, zc, ssc, var, wamp]
+    zc_threshold: 0.0005
+    ssc_threshold: 0.0005
+    wamp_threshold: 0.005
+
+models:
+  traditional:
+    classifiers: [lda, linear_svm, rbf_svm, random_forest]
+    random_forest:
+      n_estimators: 300
+      max_depth: null
+      n_jobs: -1
+  cnn:
+    batch_size: 256
+    epochs: 30
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    patience: 6
+    hidden_channels: [64, 128, 128]
+    dropout: 0.30
+
+stable_learning:
+  sample_reweighting:
+    enabled: true
+    method: class_environment_balance
+    max_weight: 10.0
+  stable_risk:
+    enabled: true
+    lambda: 0.5
+  decorrelation:
+    lambda: 0.0
+  class_conditional: true
+
+evaluation:
+  metrics: [accuracy, balanced_accuracy, macro_f1]
+  confusion_matrix: true
